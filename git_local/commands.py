@@ -7,14 +7,11 @@ def git_init(directory_path: str) -> dict:
     :param directory_path: str
     :return: dict
     """
-    try:
-        command = 'cd ' + directory_path + ' && ' + 'git init'
-        os.system(command)
-
-        return dict(success=True, message="Initialized git")
-    except Exception as e:
-
-        return dict(success=False, message=str(e))
+    command = 'cd ' + directory_path + ' && ' + 'git init'
+    result = os.system(command)
+    print(result)
+    return dict(success=True, message="Initialized git") if result == 0 \
+        else dict(success=False, message="Git init failed")
 
 
 def create_readme_and_git_ignore(directory_path: str) -> dict:
@@ -23,17 +20,14 @@ def create_readme_and_git_ignore(directory_path: str) -> dict:
     :param directory_path: str
     :return: dict
     """
-    try:
-        add_readme_command = 'cd ' + directory_path + ' && ' + 'touch README.md'
-        add_gitignore_command = 'cd ' + directory_path + ' && ' \
-                                + 'touch .gitignore'
-        os.system(add_readme_command)
-        os.system(add_gitignore_command)
+    add_readme_command = 'cd ' + directory_path + ' && ' + 'touch README.md'
+    add_gitignore_command = ' && touch .gitignore'
+    command = add_readme_command + add_gitignore_command
+    result = os.system(command)
+    print(result)
 
-        return dict(success=True, message="Added readme and gitignore")
-    except Exception as e:
-
-        return dict(success=False, message=str(e))
+    return dict(success=True, message="Initialized git") if result == 0 \
+        else dict(success=False, message="Git init failed")
 
 
 def git_add(directory_path: str) -> dict:
@@ -42,14 +36,12 @@ def git_add(directory_path: str) -> dict:
     :param directory_path:
     :return:
     """
-    try:
-        command = 'cd ' + directory_path + ' && ' + 'git add .'
-        os.system(command)
+    command = 'cd ' + directory_path + ' && ' + 'git add .'
+    result = os.system(command)
+    print(result)
 
-        return dict(success=True, message="Added files to git")
-    except Exception as e:
-
-        return dict(success=False, message=str(e))
+    return dict(success=True, message="Initialized git") if result == 0 \
+        else dict(success=False, message="Git init failed")
 
 
 def git_commit(directory_path: str) -> dict:
@@ -58,19 +50,22 @@ def git_commit(directory_path: str) -> dict:
     :param directory_path:
     :return:
     """
-    try:
-        command = 'cd ' + directory_path + ' && ' \
-                  + 'git commit -m "Initial commit"'
-        os.system(command)
+    command = 'cd ' + directory_path + ' && ' + 'git commit -m "Initial commit"'
+    result = os.system(command)
+    print(result)
 
-        return dict(success=True, message="Committed all changes to git")
-    except Exception as e:
-
-        return dict(success=False, message=str(e))
+    return dict(success=True, message="Initialized git") if result == 0 \
+        else dict(success=False, message="Git init failed")
 
 
 def git_process(directory_path: str) -> dict:
+    """
+
+    :param directory_path: str
+    :return: dict
+    """
     try:
+        print("Inside git_process method")
         git_init_response = git_init(directory_path)
         if not git_init_response["success"]:
 

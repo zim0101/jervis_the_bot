@@ -1,70 +1,35 @@
-import os
 import subprocess
 
 
-def goto_root_directory(root_path: str) -> dict:
-    """
-    Jervis will go to the root directory for the project
-    :param root_path: str
-    :return: dict
-    """
-    try:
-        os.chdir(root_path)
-        print("goto_root_directory " + os.getcwd())
-
-        return dict(success=True, message="Jervis reached the directory")
-    except FileNotFoundError as e:
-
-        return dict(success=False, message=str(e))
-
-
-def build_virtual_environment(env_name: str) -> dict:
+def build_virtual_environment(path: str, venv_name: str) -> dict:
     """
     Build a new virtual environment for your project, this is where we run this
     command:
-    python3 -m venv env_name
-    :param env_name: str
+    python3 -m venv venv_name
+    :param path:
+    :param venv_name: str
     :return: dict
     """
     try:
-        command = 'python3 -m venv ' + env_name
-        os.system(command)
+        command: str = 'cd '+path+' && '+'python3 -m venv ' + venv_name
+        subprocess.run(command, shell=True)
 
         return dict(success=True, message="Virtual environment has been built")
     except Exception as e:
+        print(e)
         return dict(success=False, message=str(e))
 
 
-def goto_venv_directory(root_path: str, env_name: str) -> dict:
-    """
-    Go to the venv directory
-    :param root_path:
-    :param env_name:
-    :return:
-    """
-    try:
-        os.chdir(root_path + '/' + env_name)
-        print("goto_venv_directory " + os.getcwd())
-
-        return dict(success=True, message="Jervis reached the directory")
-    except FileNotFoundError as e:
-
-        return dict(success=False, message=str(e))
-
-
-def install_wheel(root_path: str, env_name: str) -> dict:
+def install_wheel(path: str, venv_name: str) -> dict:
     """
     Activate venv then install wheel for future package installation then
     deactivate venv again
-    :param root_path: str
-    :param env_name: str
+    :param path: str
+    :param venv_name: str
     :return: dict
     """
     try:
-        activate_command = '. '+root_path+'/'+env_name+'/bin/activate'
-        move_directory = ' && cd '+root_path+'/'+env_name
-        pip_install = ' && pip install wheel'
-        command = activate_command + move_directory + pip_install
+        command: str = path+'/'+venv_name+'/bin/python3 -m'+' pip install wheel'
         subprocess.run(command, shell=True)
 
         return dict(success=True, message="Virtual environment activated")
@@ -73,15 +38,21 @@ def install_wheel(root_path: str, env_name: str) -> dict:
         return dict(success=False, message=str(e))
 
 
-def build_project_directory(project_name: str) -> dict:
+def build_project_directory(path: str, venv_name: str,
+                            project_name: str) -> dict:
     """
     Will create a new directory for project
+    :param venv_name: str
+    :param path: str
     :param project_name: str
     :return: dict
     """
+
+    go_to_root_directory = 'cd ' + path + '/' + venv_name
+    make_directory = ' && mkdir ' + project_name
+    commands = go_to_root_directory + make_directory
     try:
-        print("build_project_directory " + os.getcwd())
-        os.mkdir(project_name)
+        subprocess.run(commands, shell=True)
 
         return dict(success=True, message="Project directory created")
     except Exception as e:
@@ -89,36 +60,41 @@ def build_project_directory(project_name: str) -> dict:
         return dict(success=False, message=str(e))
 
 
-def goto_project_directory(root_path: str, directory_name: str) -> dict:
+def delete_virtual_environment(path: str, venv_name: str):
     """
-    Will enter in project directory from virtual environment root directory
-    :param root_path: str
-    :param directory_name: str
+    Delete virtual environment
+    :param path: str
+    :param venv_name: str
+    """
+    command = 'cd '+path+' && rm -rf '+venv_name
+    subprocess.run(command, shell=True)
+
+
+def build_venv_and_project_directory(path: str, venv_name: str,
+                                     project_path: str):
+    """
+    :param path: str
+    :param venv_name: str
+    :param project_path: str
     :return: dict
     """
     try:
-        os.chdir(root_path + '/' + directory_name)
-        print(os.getcwd())
+        build_venv = build_virtual_environment(path, venv_name)
+        if not build_venv["success"]:
+            return dict(success=False, message=build_venv["message"])
 
-        return dict(success=True, message="Jervis is in project directory")
-    except FileNotFoundError as e:
+        installation = install_wheel(path, venv_name)
+        build_project = build_project_directory(path, venv_name, project_path)
 
-        return dict(success=False, message=str(e))
+        if not installation["success"] or not build_project["success"]:
+            delete_virtual_environment(path, venv_name)
 
-
-def build_venv_and_project_directory(root_path: str, env_name: str,
-                                     project_path: str):
-    try:
-        goto_root_directory(root_path)
-        build_virtual_environment(env_name)
-        goto_venv_directory(root_path, env_name)
-        install_wheel(root_path, env_name)
-        build_project_directory(project_path)
-        goto_project_directory(root_path, project_path)
+            return dict(success=False, message=dict(
+                wheel_installation_message=installation["message"],
+                build_project_message=build_project["message"]
+            ))
 
         return dict(success=True, message="OK")
     except Exception as e:
-        print("e--------------------e")
-        print(e)
-        print("e--------------------e")
-        return dict(success=False, message="Not OK")
+
+        return dict(success=False, message=str(e))
