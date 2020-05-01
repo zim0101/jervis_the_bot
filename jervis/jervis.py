@@ -1,5 +1,5 @@
 from build_project.run import build_project
-# from git_local.run import run_git_process
+from git_local.run import run_git_process
 
 
 def build_project_with_git(work_directory: str, path: str, project_name: str,
@@ -14,8 +14,14 @@ def build_project_with_git(work_directory: str, path: str, project_name: str,
     """
     venv_building_response = build_project(work_directory, project_name,
                                            language, framework)
+    if not venv_building_response["success"]:
+        return venv_building_response
+    local_git_response = run_git_process(path)
+    if not local_git_response["success"]:
+        return local_git_response
 
-    return venv_building_response
+    return dict(success=True, message=[venv_building_response["message"],
+                                       local_git_response["message"]])
 
 
 if __name__ == '__main__':
