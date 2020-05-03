@@ -1,4 +1,5 @@
 import os
+from settings import GITHUB_USERNAME
 
 
 def get_shell_script(file_name: str) -> dict:
@@ -18,3 +19,13 @@ def get_shell_script(file_name: str) -> dict:
     except Exception as e:
 
         return dict(success=False, message=str(e))
+
+
+def github_repo_remote_origin(repo_name: str) -> str:
+    """
+
+    :param repo_name:
+    :return:
+    """
+    return "git@github.com:"+GITHUB_USERNAME+'/'+repo_name+'.git'
+
